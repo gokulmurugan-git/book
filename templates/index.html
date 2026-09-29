@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookBuddy — AI Book Assistant</title>
+    <style>
+        :root {
+            --bg: #f5f3ee;
+            --panel: #ffffff;
+            --text: #24201c;
+            --muted: #77716b;
+            --accent: #6f4e37;
+            --accent-dark: #4f3525;
+            --soft: #eee7df;
+            --border: #e6dfd7;
+            --user: #6f4e37;
+            --bot: #f3eee8;
+            --shadow: 0 18px 50px rgba(55, 42, 31, 0.10);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, #fffaf3 0, transparent 34%),
+                var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .app {
+            width: min(1180px, 94vw);
+            height: 92vh;
+            margin: 4vh auto;
+            display: grid;
+            grid-template-columns: 285px 1fr;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar {
+            background: #2f261f;
+            color: #fff;
+            padding: 28px 22px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: #f4e6d7;
+            color: #5c402d;
+            font-size: 21px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 19px;
+            letter-spacing: -0.4px;
+        }
+
+        .brand p {
+            margin: 3px 0 0;
+            color: #c9beb5;
+            font-size: 12px;
+        }
+
+        .side-title {
+            color: #9f9389;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 10px;
+            margin: 0 0 12px 8px;
+        }
+
+        .topic {
+            padding: 13px 14px;
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 13px;
+            margin-bottom: 8px;
+            color: #ddd4cd;
+            font-size: 13px;
+        }
+
+        .topic.active {
+            background: rgba(255,255,255,0.09);
+            color: #fff;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.06);
+            color: #bfb3aa;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .main {
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .header {
+            min-height: 82px;
+            padding: 18px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: -0.3px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: #6d665f;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #55a66b;
+        }
+
+        #chat {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 28px;
+            scroll-behavior: smooth;
+        }
+
+        #chat::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #chat::-webkit-scrollbar-thumb {
+            background: #d7cec5;
+            border-radius: 20px;
+        }
+
+        .welcome {
+            max-width: 650px;
+            margin: 12vh auto 0;
+            text-align: center;
+        }
+
+        .welcome-icon {
+            width: 62px;
+            height: 62px;
+            margin: 0 auto 17px;
+            display: grid;
+            place-items: center;
+            border-radius: 20px;
+            background: var(--soft);
+            font-size: 28px;
+        }
+
+        .welcome h3 {
+            margin: 0;
+            font-size: 25px;
+            letter-spacing: -0.7px;
+        }
+
+        .welcome p {
+            margin: 10px auto 22px;
+            max-width: 500px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 9px;
+        }
+
+        .chip {
+            border: 1px solid var(--border);
+            background: #fff;
+            color: #5c554e;
+            border-radius: 999px;
+            padding: 9px 13px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s ease;
+        }
+
+        .chip:hover {
+            background: var(--soft);
+            border-color: #d8cbbb;
+        }
+
+        .message {
+            display: flex;
+            gap: 11px;
+            margin: 0 auto 18px;
+            max-width: 780px;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .avatar {
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: var(--soft);
+            font-size: 15px;
+        }
+
+        .message.user .avatar {
+            order: 2;
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .bubble {
+            max-width: min(72%, 650px);
+            padding: 12px 15px;
+            border-radius: 17px;
+            background: var(--bot);
+            color: #332d28;
+            font-size: 14px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+
+        .message.user .bubble {
+            background: var(--user);
+            color: #fff;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot .bubble {
+            border-bottom-left-radius: 5px;
+        }
+
+        .composer {
+            padding: 15px 25px 21px;
+            border-top: 1px solid var(--border);
+            background: rgba(255,255,255,0.96);
+        }
+
+        .input-wrap {
+            max-width: 780px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 8px 8px 8px 15px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: #faf9f7;
+            transition: 0.2s ease;
+        }
+
+        .input-wrap:focus-within {
+            border-color: #c8b5a2;
+            box-shadow: 0 0 0 3px rgba(111,78,55,0.07);
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 120px;
+            min-height: 38px;
+            padding: 8px 0;
+        }
+
+        textarea::placeholder {
+            color: #a29a92;
+        }
+
+        #send {
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            border: 0;
+            border-radius: 13px;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            font-size: 17px;
+            transition: 0.2s ease;
+        }
+
+        #send:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+        }
+
+        #send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hint {
+            max-width: 780px;
+            margin: 8px auto 0;
+            text-align: center;
+            color: #aaa29b;
+            font-size: 10px;
+        }
+
+        .typing {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #8e8379;
+            animation: blink 1s infinite ease-in-out;
+        }
+
+        .typing span:nth-child(2) { animation-delay: .15s; }
+        .typing span:nth-child(3) { animation-delay: .3s; }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: .3; transform: translateY(0); }
+            40% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        @media (max-width: 800px) {
+            body {
+                overflow: auto;
+            }
+
+            .app {
+                width: 100%;
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .header {
+                min-height: 72px;
+                padding: 15px 18px;
+            }
+
+            #chat {
+                padding: 20px 15px;
+            }
+
+            .composer {
+                padding: 12px 14px 15px;
+            }
+
+            .bubble {
+                max-width: 82%;
+            }
+
+            .welcome {
+                margin-top: 9vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">📖</div>
+                <div>
+                    <h1>BookBuddy</h1>
+                    <p>AI Book Assistant</p>
+                </div>
+            </div>
+
+            <div class="side-title">Explore</div>
+            <div class="topic active">📚 Books & Reading</div>
+            <div class="topic">✍️ Literature & Authors</div>
+            <div class="topic">💡 Book Discussions</div>
+            <div class="topic">🎓 Study Support</div>
+
+            <div class="sidebar-footer">
+                BookBuddy stays focused on books, reading, literature, and book-related study questions.
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div>
+                    <h2>BookBuddy</h2>
+                    <p>Your personal AI companion for books and literature.</p>
+                </div>
+                <div class="status">
+                    <span class="dot"></span>
+                    Online
+                </div>
+            </header>
+
+            <section id="chat">
+                <div class="welcome" id="welcome">
+                    <div class="welcome-icon">📚</div>
+                    <h3>What are we reading today?</h3>
+                    <p>
+                        Ask about books, authors, genres, themes, characters,
+                        summaries, literature concepts, or book-related study topics.
+                    </p>
+
+                    <div class="chips">
+                        <button class="chip" data-prompt="Recommend some beginner-friendly mystery books.">Mystery books</button>
+                        <button class="chip" data-prompt="Explain the main literary themes in a novel.">Literary themes</button>
+                        <button class="chip" data-prompt="How can I build a consistent reading habit?">Reading habit</button>
+                        <button class="chip" data-prompt="Give me some book discussion questions.">Discussion questions</button>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="composer">
+                <form id="chat-form">
+                    <div class="input-wrap">
+                        <textarea id="message" rows="1" placeholder="Ask BookBuddy about a book..." autocomplete="off"></textarea>
+                        <button id="send" type="submit" aria-label="Send message">➤</button>
+                    </div>
+                </form>
+                <div class="hint">BookBuddy focuses only on books, reading, literature, and related study support.</div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const chat = document.getElementById("chat");
+        const form = document.getElementById("chat-form");
+        const input = document.getElementById("message");
+        const sendButton = document.getElementById("send");
+        const welcome = document.getElementById("welcome");
+
+        function addMessage(text, type) {
+            if (welcome) {
+                welcome.remove();
+            }
+
+            const message = document.createElement("div");
+            message.className = `message ${type}`;
+
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.textContent = type === "user" ? "You" : "📖";
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.textContent = text;
+
+            message.appendChild(avatar);
+            message.appendChild(bubble);
+            chat.appendChild(message);
+
+            chat.scrollTop = chat.scrollHeight;
+            return message;
+        }
+
+        function addTyping() {
+            const message = document.createElement("div");
+            message.className = "message bot";
+            message.id = "typing";
+
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.textContent = "📖";
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+
+            const typing = document.createElement("div");
+            typing.className = "typing";
+            typing.innerHTML = "<span></span><span></span><span></span>";
+
+            bubble.appendChild(typing);
+            message.appendChild(avatar);
+            message.appendChild(bubble);
+            chat.appendChild(message);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById("typing");
+            if (typing) typing.remove();
+        }
+
+        async function sendMessage(text) {
+            const message = text.trim();
+            if (!message || sendButton.disabled) return;
+
+            addMessage(message, "user");
+            input.value = "";
+            input.style.height = "auto";
+            sendButton.disabled = true;
+            addTyping();
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                removeTyping();
+
+                if (!response.ok) {
+                    addMessage(data.error || "Something went wrong. Please try again.", "bot");
+                    return;
+                }
+
+                addMessage(data.response, "bot");
+            } catch (error) {
+                removeTyping();
+                addMessage("I couldn't connect right now. Please try again.", "bot");
+            } finally {
+                sendButton.disabled = false;
+                input.focus();
+            }
+        }
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            sendMessage(input.value);
+        });
+
+        input.addEventListener("input", () => {
+            input.style.height = "auto";
+            input.style.height = Math.min(input.scrollHeight, 120) + "px";
+        });
+
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        document.querySelectorAll(".chip").forEach((chip) => {
+            chip.addEventListener("click", () => {
+                input.value = chip.dataset.prompt;
+                input.focus();
+                input.dispatchEvent(new Event("input"));
+            });
+        });
+    </script>
+</body>
+</html>
